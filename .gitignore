@@ -1,0 +1,36 @@
+# Backend (Python)
+backend/venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+backend/.env
+backend/*.db
+backend/*.sqlite3
+
+# Frontend (React/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# IDEs e Ferramentas de Desenvolvimento
+.vscode/
+.idea/
+*.swp
+*.swo
+.env
+
+# Sistema Operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
