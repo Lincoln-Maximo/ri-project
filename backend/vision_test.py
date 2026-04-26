@@ -9,7 +9,7 @@ if not cap.isOpened():
     print("Erro: Não foi possível abrir a webcam.")
     exit()
 
-print("Pressione 'q' para sair.")
+print("Pressione 'q' para sair. ")
 
 while True:
     success, frame = cap.read()
