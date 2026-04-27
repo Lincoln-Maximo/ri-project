@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # REAL INTELLIGENCE
+=======
+# 🛡️ REAL INTELLIGENCE: MAIS QUE UMA IA
+>>>>>>> df90296f83d5a2fed2d18dfbcaeb6409ae7c65cd
 
 O **REAL INTELLIGENCE** é um ecossistema de monitoramento preventivo que utiliza Inteligência Artificial para garantir a segurança em ambientes industriais. Através de Visão Computacional de alta precisão, o sistema automatiza a fiscalização do uso de Equipamentos de Proteção Individual (EPIs) e identifica colaboradores em tempo real.
 
