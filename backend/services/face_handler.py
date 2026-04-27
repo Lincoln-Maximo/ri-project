@@ -1,11 +1,18 @@
-import face_recognition
 import os
 import cv2
 import numpy as np
+from insightface.app import FaceAnalysis
 
 class FaceIdentifier:
     def __init__(self, known_faces_dir):
-        self.known_encodings = []
+        # name='buffalo_l' baixa o modelo de alta precisão
+        # providers=['CPUExecutionProvider'] garante o uso apenas da CPU
+        self.app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])
+
+        # Prepara o modelo (ctx_id=-1 força CPU, 0 seria a primeira GPU)
+        self.app.prepare(ctx_id=-1, det_size=(640, 640))
+
+        self.known_embeddings = []
         self.known_names = []
         self.load_known_faces(known_faces_dir)
 
@@ -14,41 +21,65 @@ class FaceIdentifier:
             print(f"Erro: Diretório '{directory}' não encontrado.")
             return
 
+        print("Carregando base de faces com InsightFace (Modelo Buffalo_L)...")
         for filename in os.listdir(directory):
             if filename.endswith((".jpg", ".png", ".jpeg")):
                 filepath = os.path.join(directory, filename)
-                image = face_recognition.load_image_file(filepath)
-                encodings = face_recognition.face_encodings(image)
+                img = cv2.imread(filepath)
 
-                if len(encodings) == 0:
-                    print(f"Aviso: Nenhum rosto encontrado em '{filename}', ignorando.")
-                    continue
+                # O InsightFace detecta e analisa o rosto na foto de cadastro
+                faces = self.app.get(img)
 
-                self.known_encodings.append(encodings[0])
-                self.known_names.append(os.path.splitext(filename)[0])
+                if len(faces) > 0:
+                    # Ordena por tamanho para pegar o rosto principal se houver mais de um
+                    faces = sorted(faces, key=lambda x: (x.bbox[2]-x.bbox[0])*(x.bbox[3]-x.bbox[1]), reverse=True)
+                    self.known_embeddings.append(faces[0].normed_embedding)
+                    self.known_names.append(os.path.splitext(filename)[0])
+                else:
+                    print(f"Aviso: Nenhum rosto encontrado em '{filename}'")
 
-        print(f"Base de dados carregada: {self.known_names}")
+        print(f"Base de dados carregada com sucesso: {self.known_names}")
 
     def identify(self, frame, face_location):
+        """
+        Identifica o rosto na área especificada.
+        face_location: (top, right, bottom, left) vindo do YOLO
+        """
         top, right, bottom, left = face_location
 
-        # Converte frame de BGR (OpenCV) para RGB (face_recognition)
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        # Garante que as coordenadas estão dentro do frame para o recorte
+        h, w = frame.shape[:2]
+        top, bottom = max(0, top), min(h, bottom)
+        left, right  = max(0, left), min(w, right)
 
-        # DEBUG: Verifica se o encoding está sendo gerado
-        face_encodings = face_recognition.face_encodings(rgb_frame, [(top, right, bottom, left)])
+        # Recorta a região de interesse (ROI) para acelerar a CPU
+        roi = frame[top:bottom, left:right]
+        if roi.size == 0:
+            return "Erro de imagem"
 
-        if not face_encodings:
-            # Se cair aqui, o recorte está ruim e não há rosto visível nele
-            return "Rosto nao focado"
+        # InsightFace analisa a ROI
+        faces = self.app.get(roi)
 
-        face_distances = face_recognition.face_distance(self.known_encodings, face_encodings[0])
-        best_match_index = np.argmin(face_distances)
+        if not faces:
+            return "Desconhecido"
 
-        # DEBUG: Quanto menor a distância, mais parecido. Abaixo de 0.65 considera reconhecido
-        print(f"Distancia detectada: {face_distances[best_match_index]:.2f}")
+        # Pega o embedding do rosto detectado
+        current_embedding = faces[0].normed_embedding
 
-        if face_distances[best_match_index] < 0.65:
-            return self.known_names[best_match_index]
+        # Calcula a similaridade de cosseno (0 a 1)
+        # Diferente da distância (onde menor é melhor), aqui quanto MAIOR melhor
+        similarities = [np.dot(current_embedding, known) for known in self.known_embeddings]
+
+        if not similarities:
+            return "Desconhecido"
+
+        best_match_idx = np.argmax(similarities)
+        score = similarities[best_match_idx]
+
+        # Limiar de confiança para Buffalo_L em CPU:
+        # 0.4 a 0.5: Provável / 0.6+: Certeza
+        print(f"Similaridade detectada: {score:.2f}")
+        if score > 0.45:
+            return self.known_names[best_match_idx]
 
         return "Desconhecido"
