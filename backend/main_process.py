@@ -53,7 +53,7 @@ while True:
             left   = max(0, x1 - int(largura * 0.5))
             right  = min(frame_w, x2 + int(largura * 0.5))
 
-            # Ordem para face_recognition: (Top, Right, Bottom, Left)
+            # Ordem para reconhecer face: (Top, Right, Bottom, Left)
             face_location = (top, right, bottom, left)
             name = face_id.identify(frame, face_location)
 

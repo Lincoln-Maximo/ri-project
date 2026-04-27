@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-# Carrega o modelo que você baixou
+# Carrega o modelo para teste
 model = YOLO('models/best.pt')
 
 # Imprime o dicionário de classes
