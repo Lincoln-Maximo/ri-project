@@ -20,7 +20,6 @@ class FaceIdentifier:
                 image = face_recognition.load_image_file(filepath)
                 encodings = face_recognition.face_encodings(image)
 
-                # Ignora imagens onde nenhum rosto foi encontrado
                 if len(encodings) == 0:
                     print(f"Aviso: Nenhum rosto encontrado em '{filename}', ignorando.")
                     continue
@@ -36,17 +35,20 @@ class FaceIdentifier:
         # Converte frame de BGR (OpenCV) para RGB (face_recognition)
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+        # DEBUG: Verifica se o encoding está sendo gerado
         face_encodings = face_recognition.face_encodings(rgb_frame, [(top, right, bottom, left)])
 
         if not face_encodings:
-            return "Nao detectado"
+            # Se cair aqui, o recorte está ruim e não há rosto visível nele
+            return "Rosto nao focado"
 
-        # Usa distância para pegar o rosto mais parecido (mais confiável que só True/False)
         face_distances = face_recognition.face_distance(self.known_encodings, face_encodings[0])
         best_match_index = np.argmin(face_distances)
 
-        # Limiar de confiança — abaixo de 0.5 considera reconhecido
-        if face_distances[best_match_index] < 0.5:
+        # DEBUG: Quanto menor a distância, mais parecido. Abaixo de 0.65 considera reconhecido
+        print(f"Distancia detectada: {face_distances[best_match_index]:.2f}")
+
+        if face_distances[best_match_index] < 0.65:
             return self.known_names[best_match_index]
 
         return "Desconhecido"
