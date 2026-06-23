@@ -12,13 +12,9 @@ Sistema de visão computacional para segurança do trabalho em ambientes industr
 - [Pré-requisitos](#pré-requisitos)
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [1. Configuração do banco de dados (PostgreSQL)](#1-configuração-do-banco-de-dados-postgresql)
-- [2. Modelo de detecção (YOLO)](#2-modelo-de-detecção-yolo)
-- [3. Variáveis de ambiente](#3-variáveis-de-ambiente)
-- [4. Instalação e execução](#4-instalação-e-execução)
+- [2. Variáveis de ambiente](#3-variáveis-de-ambiente)
+- [3. Instalação e execução](#4-instalação-e-execução)
 - [Acessando o sistema](#acessando-o-sistema)
-- [Documentação da API](#documentação-da-api)
-- [Scripts utilitários do backend](#scripts-utilitários-do-backend)
-- [Solução de problemas](#solução-de-problemas)
 - [Nota de responsabilidade](#nota-de-responsabilidade)
 
 ---
