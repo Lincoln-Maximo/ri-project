@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@import "react-toastify/dist/ReactToastify.css";
+
+:root {
+  --toastify-color-colored-error: #003366 !important;
+  --toastify-color-colored-success: #003366 !important;
+  --toastify-color-colored-warning: #003366 !important;
+  --toastify-color-colored-info: #003366 !important;
+}
+
+.Toastify__toast--colored.Toastify__toast--error,
+.Toastify__toast--colored.Toastify__toast--success,
+.Toastify__toast--colored.Toastify__toast--warning,
+.Toastify__toast--colored.Toastify__toast--info {
+    background-color: #003366 !important;
+}
+
+.Toastify__progress-bar--colored.Toastify__progress-bar--error,
+.Toastify__progress-bar--colored.Toastify__progress-bar--success,
+.Toastify__progress-bar--colored.Toastify__progress-bar--warning,
+.Toastify__progress-bar--colored.Toastify__progress-bar--info {
+    background: rgba(255, 255, 255, 0.7) !important;
+}

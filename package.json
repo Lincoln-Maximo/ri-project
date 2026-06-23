@@ -1,0 +1,14 @@
+{
+  "name": "real-intelligence-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install --prefix frontend && pip install -r backend/requirements.txt",
+    "dev": "concurrently \"npm run dev --prefix frontend\" \"cd backend && python -m app.main\"",
+    "dev:front": "npm run dev --prefix frontend",
+    "dev:back": "cd backend && python -m app.main"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

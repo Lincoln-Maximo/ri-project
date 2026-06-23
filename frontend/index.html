@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real Intelligence</title>
+    <style>
+      :root {
+        --toastify-color-colored-error: #003366 !important;
+        --toastify-color-colored-success: #003366 !important;
+        --toastify-color-colored-warning: #003366 !important;
+        --toastify-color-colored-info: #003366 !important;
+      }
+      .Toastify__toast--colored {
+        background-color: #003366 !important;
+      }
+      .Toastify__toast--colored.Toastify__toast--error,
+      .Toastify__toast--colored.Toastify__toast--success,
+      .Toastify__toast--colored.Toastify__toast--warning,
+      .Toastify__toast--colored.Toastify__toast--info {
+        background-color: #003366 !important;
+        color: white !important;
+      }
+      .Toastify__toast-icon svg {
+        fill: white !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
