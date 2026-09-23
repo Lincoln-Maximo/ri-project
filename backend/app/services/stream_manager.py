@@ -83,7 +83,6 @@ class RTSPStreamManager:
         
         conn = None
         try:
-            # Verifica se o colaborador ainda existe
             colab_id = None
             if name != "Desconhecido":
                 matricula = name.split('_')[0] if '_' in name else name
@@ -97,7 +96,7 @@ class RTSPStreamManager:
                     logger.info(f"Colaborador {name} não encontrado no banco (provavelmente deletado).")
                     name = "Desconhecido"
             
-            # Re-verificar se mudou para "Desconhecido"
+            # verificar se mudou para "Desconhecido"
             if name == "Desconhecido":
                 event_key = f"{camera_db_id}_{now}_{label}"
             else:
@@ -132,7 +131,6 @@ class RTSPStreamManager:
                     cv2.rectangle(frame_evidence, (x1, y1 - th - 10), (x1 + tw + 8, y1), color, -1)
                     cv2.putText(frame_evidence, display_text, (x1 + 4, y1 - 7), font, font_scale, (255, 255, 255), thickness, cv2.LINE_AA)
 
-            # Thumbnail logic
             if name == "Desconhecido":
                 # Para desconhecido, a miniatura é o recorte do rosto detectado
                 thumb_filename = f"event_{int(now)}_{cam_id}.jpg"
@@ -149,10 +147,9 @@ class RTSPStreamManager:
                 thumb_url = f"/event_images/{thumb_filename}"
                 status_val = 'desconhecido'
             else:
-                # Para conhecido, a miniatura é a foto cadastrada no banco
-                # A foto cadastrada é buscada via endpoint /faces/{colab_id}/photo
+
                 status_val = 'id_pendente'
-                thumb_url = None # Será gerenciado pela UI via colab_id
+                thumb_url = None 
 
             # O screenshot é sempre a imagem com a bounding box
             screenshot_filename = f"screenshot_{int(now)}_{cam_id}.jpg"
@@ -166,7 +163,7 @@ class RTSPStreamManager:
             cam_res = cur.fetchone()
             setor_id = cam_res[0] if cam_res else None
             
-            # Tenta encontrar "Sem Capacete", senão usa qualquer tipo de violação
+            # Tenta encontrar "Sem Capacete"
             cur.execute("SELECT id, nome FROM tipos_violacao WHERE LOWER(nome) LIKE '%sem capacete%' LIMIT 1")
             tv_res = cur.fetchone()
             
@@ -174,7 +171,7 @@ class RTSPStreamManager:
                 tipo_violacao_id = tv_res[0]
                 logger.info(f"Tipo de violação encontrado: {tv_res[1]} ({tipo_violacao_id})")
             else:
-                # Fallback: pega qualquer tipo de violação com nível 'alto'
+
                 cur.execute("SELECT id FROM tipos_violacao WHERE nivel_perigo = 'alto' LIMIT 1")
                 tv_res = cur.fetchone()
                 tipo_violacao_id = tv_res[0] if tv_res else None
@@ -246,7 +243,7 @@ class RTSPStreamManager:
                         is_helmet = False
                         label_display = "SEM CAPACETE"
 
-                    # Ajuste fino: Bounding box mais próxima do rosto
+                    # Bounding box mais próxima do rosto
                     largura, altura = x2 - x1, y2 - y1
                     top, bottom = max(0, y1), min(frame_h, y2 + int(altura * 1.5))
                     left, right = max(0, x1 + int(largura * 0.1)), min(frame_w, x2 - int(largura * 0.1))
@@ -257,7 +254,6 @@ class RTSPStreamManager:
                     logger.info(f"Face identificada como: {name}")
                     
                     import re
-                    # Formatar nome para exibição: [Nome] - Matric: [Matrícula]
                     display_name = name
                     if "_" in name:
                         parts = name.split('_')

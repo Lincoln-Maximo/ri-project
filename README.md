@@ -4,6 +4,8 @@ Sistema de visão computacional para segurança do trabalho em ambientes industr
 
 ---
 
+`![Descrição da imagem](docs/images/dashboard.png)`
+
 ## Sumário
 
 - [Visão geral da arquitetura](#visão-geral-da-arquitetura)
@@ -26,15 +28,15 @@ O projeto é dividido em dois módulos independentes, orquestrados a partir da r
 ```
 ┌──────────────────────┐        REST / JWT        ┌───────────────────────────┐
 │   Frontend (React)   │ ───────────────────────► │     Backend (FastAPI)     │
-│   Vite + Tailwind     │ ◄─────────────────────── │  OpenCV + YOLO + Insight  │
-│   localhost:5173      │      MJPEG (stream)      │  Face — localhost:8080    │
+│   Vite + Tailwind    │ ◄─────────────────────── │  OpenCV + YOLO + Insight  │
+│   localhost:5173     │      MJPEG (stream)      │  Face — localhost:8080    │
 └──────────────────────┘                          └─────────────┬─────────────┘
                                                                   │
                                                     ┌─────────────▼─────────────┐
                                                     │   PostgreSQL 14+          │
                                                     │   (eventos, colaboradores,│
                                                     │    câmeras, usuários...)  │
-                                                    └────────────────────────────┘
+                                                    └───────────────────────────┘
 ```
 
 Resumo do fluxo de detecção:

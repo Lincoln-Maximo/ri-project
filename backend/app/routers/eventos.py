@@ -27,9 +27,6 @@ def format_date_br():
     return datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
 
-# ======================================================================
-# Classe PDFReport — layout corporativo de segurança
-# ======================================================================
 
 class PDFReport(FPDF):
     """Relatório analítico de segurança — layout corporativo."""
@@ -41,29 +38,22 @@ class PDFReport(FPDF):
         self.alias_nb_pages()          # habilita {nb} no footer
         self.set_margins(15, 15, 15)   # 15mm em todos os lados
 
-    # ------------------------------------------------------------------
-    # SEÇÃO 1 — CABEÇALHO (Altura fixa: 90px ~ 31.75mm)
-    # ------------------------------------------------------------------
+
     def header(self):
         header_h = 31.75  # 90px in mm (90 * 25.4 / 72)
 
-        # Fundo: #1B2A4A sólido (sem gradiente)
+
         self.set_fill_color(27, 42, 74)
         self.rect(0, 0, self.w, header_h, 'F')
 
-        # Separador inferior: linha de 3px sólida na cor #E53935
-        self.set_draw_color(229, 57, 53)   # #E53935
-        self.set_line_width(3 * 25.4 / 72)  # 3px ~ 1.058 mm
+        self.set_draw_color(229, 57, 53)   
+        self.set_line_width(3 * 25.4 / 72)  
         self.line(0, header_h, self.w, header_h)
 
-        # Layout interno: coluna única centralizada
-        # TEXTO PRINCIPAL (centralizado horizontalmente e verticalmente)
-        # Altura do bloco de texto: 20pt (~7mm) + 4px margin (~1.41mm) + 11pt (~3.88mm) = ~12.3mm
-        # Y inicial para centralização vertical em 31.75mm: (31.75 - 12.3) / 2 = 9.72mm
+
         title_y = 9.72
 
-        # Linha 1: "RELATÓRIO ANALÍTICO DE SEGURANÇA"
-        # Fonte: 20px, peso 500 (B), cor #FFFFFF, letter-spacing 0.5px (0.5 pt)
+
         self.set_font('Helvetica', 'B', 20)
         self.set_text_color(255, 255, 255)
         self.set_xy(0, title_y)
@@ -71,19 +61,14 @@ class PDFReport(FPDF):
         self.cell(self.w, 7, 'RELATÓRIO ANALÍTICO DE SEGURANÇA', 0, 0, 'C')
         self._out("0 Tc")   # reset letter-spacing
 
-        # Linha 2: "Sistema de Monitoramento com Inteligência Artificial"
-        # Fonte: 11px, peso 400, cor #A8C0E0, margin-top 4px (~1.41mm)
         self.set_font('Helvetica', '', 11)
         self.set_text_color(168, 192, 224)  # #A8C0E0
         self.set_xy(0, title_y + 7 + 1.41)
         self.cell(self.w, 4, 'Sistema de Monitoramento com Inteligência Artificial', 0, 0, 'C')
 
-        # Avançar cursor para após o cabeçalho
         self.set_y(header_h + 2)
 
-    # ------------------------------------------------------------------
-    # SEÇÃO 6 — RODAPÉ
-    # ------------------------------------------------------------------
+
     def footer(self):
         footer_h = 25 * 25.4 / 72  # 25px total height (8px top/bottom padding + 9px font) ~ 8.82 mm
         self.set_y(-footer_h)
@@ -106,9 +91,7 @@ class PDFReport(FPDF):
         self.cell(0, footer_h, page_text, 0, 0, 'C')
 
 
-# ======================================================================
-# Funções auxiliares — gráficos (matplotlib)
-# ======================================================================
+
 
 def _chart_incidents_by_sector(data: List[Tuple[str, int]]) -> io.BytesIO:
     """Gráfico de barras verticais — Incidentes por Setor."""
@@ -217,9 +200,7 @@ def _empty_chart(title: str) -> io.BytesIO:
     return buf
 
 
-# ======================================================================
-# Helper — desenha cabeçalho da tabela (reutilizado em páginas seguintes)
-# ======================================================================
+
 
 def _draw_table_header(pdf, col_mm):
     """Desenha a linha de cabeçalho da tabela resumo."""
@@ -234,9 +215,7 @@ def _draw_table_header(pdf, col_mm):
     pdf.ln()
 
 
-# ======================================================================
-# Rota — Exportar PDF
-# ======================================================================
+
 
 @router.get("/export/pdf")
 async def exportar_pdf(
@@ -247,9 +226,7 @@ async def exportar_pdf(
     setor_id: Optional[str] = Query(None),
     user_id: str = Depends(get_optional_token_user)
 ):
-    # -----------------------------------------------------------------
-    # Preparar etiqueta de período
-    # -----------------------------------------------------------------
+
     if period == "custom" and start_date and end_date:
         try:
             d_start = datetime.strptime(start_date, "%Y-%m-%d").strftime("%d/%m/%Y")
@@ -311,38 +288,35 @@ async def exportar_pdf(
         cur.execute(query, params)
         rows = cur.fetchall()
 
-        # =============================================================
-        # Agregar dados para KPIs, gráficos e tabela
-        # =============================================================
+
         total_violacoes = len(rows)
 
-        # Faces reconhecidas (colaboradores distintos não-nulos)
+
         faces_set = set()
         for r in rows:
             if r[5] and str(r[5]).upper() != "DESCONHECIDO":
                 faces_set.add(r[5])
         faces_reconhecidas = len(faces_set)
 
-        # Câmera crítica (mais ocorrências)
+
         cam_counter = Counter()
         for r in rows:
             cam_counter[r[1] if r[1] else "---"] += 1
         camera_critica = cam_counter.most_common(1)[0][0] if cam_counter else "---"
 
-        # Zona/Setor crítico
+
         setor_counter = Counter()
         for r in rows:
             setor_counter[r[2] if r[2] else "---"] += 1
         zona_critica = setor_counter.most_common(1)[0][0] if setor_counter else "---"
 
-        # Dados para gráficos
         incidents_by_sector = setor_counter.most_common()
         violation_counter = Counter()
         for r in rows:
             violation_counter[r[3] if r[3] else "SEGURO"] += 1
         violation_types = violation_counter.most_common()
 
-        # Agrupamento para tabela
+
         groups = Counter()
         for r in rows:
             colabor = r[5] if r[5] else "DESCONHECIDO"
@@ -354,17 +328,14 @@ async def exportar_pdf(
         top_groups = groups.most_common(10)
         others_count = total_regs - sum(cnt for _, cnt in top_groups)
 
-        # =============================================================
+
         # GERAR PDF
-        # =============================================================
         pdf = PDFReport(period_label=period_label)
         pdf.add_page()
 
         usable_w = pdf.w - pdf.l_margin - pdf.r_margin  # ~180mm
 
-        # ------------------------------------------------------------------
-        # SEÇÃO 2 — BARRA DE METADADOS
-        # ------------------------------------------------------------------
+
         meta_h = 24 * 25.4 / 72  # 24px (7px top/bottom padding + 10px font) ~ 8.47 mm
         pdf.set_fill_color(232, 238, 247)   # #E8EEF7
         pdf.set_font('Helvetica', '', 10)
@@ -377,9 +348,6 @@ async def exportar_pdf(
         pdf.line(pdf.l_margin, pdf.get_y(), pdf.w - pdf.r_margin, pdf.get_y())
         pdf.ln(5.6)  # ~16px espaçamento entre seções
 
-        # ------------------------------------------------------------------
-        # SEÇÃO 3 — KPIs (4 cartões na mesma linha)
-        # ------------------------------------------------------------------
         card_w = usable_w / 4
         card_h = 30  # mm
         y_kpi = pdf.get_y()
@@ -394,17 +362,16 @@ async def exportar_pdf(
         for idx, (label, value, font_size, show_badge) in enumerate(kpi_data):
             x = pdf.l_margin + idx * card_w
 
-            # Fundo branco do cartão
+
             pdf.set_fill_color(255, 255, 255)
             pdf.rect(x, y_kpi, card_w, card_h, 'F')
 
-            # Separador vertical entre cartões
+
             if idx > 0:
                 pdf.set_draw_color(221, 227, 237)
                 pdf.set_line_width(0.18)
                 pdf.line(x, y_kpi, x, y_kpi + card_h)
 
-            # Valor numérico em destaque
             pdf.set_font('Helvetica', 'B', font_size)
             pdf.set_text_color(27, 42, 74)  # #1B2A4A
             val_y = y_kpi + 5.6   # padding-top ~16px
@@ -418,7 +385,6 @@ async def exportar_pdf(
             pdf.set_xy(x, label_y)
             pdf.cell(card_w, 4, label, 0, 0, 'C')
 
-            # Badge "CRITICO" (somente no cartão de violações)
             if show_badge:
                 badge_w = 24
                 badge_h = 5
@@ -437,9 +403,7 @@ async def exportar_pdf(
         pdf.line(pdf.l_margin, y_kpi + card_h, pdf.w - pdf.r_margin, y_kpi + card_h)
         pdf.set_y(y_kpi + card_h + 5.6)
 
-        # ------------------------------------------------------------------
-        # SEÇÃO 4 — GRÁFICOS (lado a lado, 50% cada)
-        # ------------------------------------------------------------------
+
         chart_w = usable_w / 2
         chart_h = 70   # ~200px
         y_charts = pdf.get_y()
@@ -447,75 +411,68 @@ async def exportar_pdf(
         chart1_buf = _chart_incidents_by_sector(incidents_by_sector)
         chart2_buf = _chart_violation_type_donut(violation_types, total_violacoes)
 
-        # Fundo branco para cada gráfico
         pdf.set_fill_color(255, 255, 255)
         pdf.rect(pdf.l_margin, y_charts, chart_w, chart_h, 'F')
         pdf.rect(pdf.l_margin + chart_w, y_charts, chart_w, chart_h, 'F')
 
-        # Separador vertical entre gráficos
+  
         pdf.set_draw_color(221, 227, 237)
         pdf.set_line_width(0.18)
         pdf.line(pdf.l_margin + chart_w, y_charts,
                  pdf.l_margin + chart_w, y_charts + chart_h)
 
-        # Inserir imagens dos gráficos com padding interno
         pad = 5.6   # ~16px
         pdf.image(chart1_buf, x=pdf.l_margin + pad, y=y_charts + pad,
                   w=chart_w - pad * 2, h=chart_h - pad * 2)
         pdf.image(chart2_buf, x=pdf.l_margin + chart_w + pad, y=y_charts + pad,
                   w=chart_w - pad * 2, h=chart_h - pad * 2)
 
-        # Borda inferior do bloco de gráficos
+
         pdf.line(pdf.l_margin, y_charts + chart_h,
                  pdf.w - pdf.r_margin, y_charts + chart_h)
         pdf.set_y(y_charts + chart_h + 5.6)
 
-        # ------------------------------------------------------------------
-        # SEÇÃO 5 — TABELA RESUMO DE OCORRÊNCIAS (agrupada, top 10)
-        # ------------------------------------------------------------------
-        # Larguras ajustadas para garantir espaço para "Registros" (9%) e "% do Total" (10%)
-        # reduzindo levemente "Ocorrência" (de 25% para 22%) e "Câmera" (de 18% para 17%)
+
         col_pct = [5, 22, 22, 17, 15, 9, 10]
         col_mm = [usable_w * p / 100 for p in col_pct]
         row_h = 26 * 25.4 / 72  # Padding: 8px 12px (altura total = 26px ~ 9.17mm)
 
-        # Cabeçalho da tabela
+
         _draw_table_header(pdf, col_mm)
 
-        # Função auxiliar para verificar espaço e repetir cabeçalho
         def _check_page_break():
             if pdf.get_y() + row_h > pdf.h - 20:
                 pdf.add_page()
                 _draw_table_header(pdf, col_mm)
 
-        # Linhas da tabela
+
         for idx, ((colab, viol, cam, setr), cnt) in enumerate(top_groups, start=1):
             _check_page_break()
             percent = cnt / total_regs * 100 if total_regs else 0
 
-            # Zebra (ímpares: fundo #FFFFFF, pares: fundo #F4F6F9)
+
             if idx % 2 != 0:
                 bg = (255, 255, 255)
             else:
                 bg = (244, 246, 249)
             pdf.set_fill_color(*bg)
 
-            # Borda de cada célula: 0.5px solid #DDE3ED
+
             pdf.set_draw_color(221, 227, 237)
             pdf.set_line_width(0.5 * 25.4 / 72)
 
-            # Truncamento inteligente para que o texto nunca sobreponha ou desconfigure a grid
+
             colab_text = colab[:22] + "..." if len(colab) > 22 else colab
             viol_text = viol[:20] + "..." if len(viol) > 20 else viol
             cam_text = cam[:16] + "..." if len(cam) > 16 else cam
             setr_text = setr[:12] + "..." if len(setr) > 12 else setr
 
-            # Coluna # — Número ordinal simples: 1º, 2º...
+
             pdf.set_text_color(27, 42, 74)
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[0], row_h, f"{idx}º", 1, 0, 'C', True)
 
-            # Coluna Colaborador
+
             if colab.upper() == 'DESCONHECIDO':
                 pdf.set_text_color(136, 136, 136)   # #888888
                 pdf.set_font('Helvetica', 'I', 10)
@@ -524,71 +481,70 @@ async def exportar_pdf(
                 pdf.set_font('Helvetica', 'B', 10)  # peso 500 (B)
             pdf.cell(col_mm[1], row_h, colab_text, 1, 0, 'L', True)
 
-            # Coluna Ocorrência
+
             pdf.set_text_color(27, 42, 74)
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[2], row_h, viol_text, 1, 0, 'L', True)
 
-            # Coluna Câmera
+
             pdf.set_text_color(27, 42, 74)
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[3], row_h, cam_text, 1, 0, 'L', True)
 
-            # Coluna Setor
+     
             pdf.set_text_color(27, 42, 74)
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[4], row_h, setr_text, 1, 0, 'L', True)
 
-            # Coluna Registros
+
             if cnt > 10:
-                pdf.set_font('Helvetica', 'B', 10)  # peso 500 (B)
-                pdf.set_text_color(229, 57, 53)     # #E53935
+                pdf.set_font('Helvetica', 'B', 10) 
+                pdf.set_text_color(229, 57, 53)    
             else:
                 pdf.set_font('Helvetica', '', 10)
                 pdf.set_text_color(27, 42, 74)
             pdf.cell(col_mm[5], row_h, str(cnt), 1, 0, 'C', True)
 
-            # Coluna % do Total (Sempre com uma casa decimal)
+
             pdf.set_text_color(27, 42, 74)
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[6], row_h, f'{percent:.1f}%', 1, 1, 'C', True)
 
-        # Linha "Demais ocorrências"
+
         if others_count > 0:
             _check_page_break()
             idx = len(top_groups) + 1
             percent = others_count / total_regs * 100 if total_regs else 0
 
-            # Zebra
+
             if idx % 2 != 0:
                 bg = (255, 255, 255)
             else:
                 bg = (244, 246, 249)
             pdf.set_fill_color(*bg)
 
-            # Borda
+
             pdf.set_draw_color(221, 227, 237)
             pdf.set_line_width(0.5 * 25.4 / 72)
 
-            # #
+
             pdf.set_text_color(27, 42, 74)
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[0], row_h, f"{idx}º", 1, 0, 'C', True)
 
-            # Colaborador (estilo itálico, cor #888888)
+
             pdf.set_text_color(136, 136, 136)
             pdf.set_font('Helvetica', 'I', 10)
             pdf.cell(col_mm[1], row_h, '-', 1, 0, 'C', True)
 
-            # Ocorrência
             pdf.set_text_color(27, 42, 74)
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[2], row_h, 'Demais ocorrencias', 1, 0, 'L', True)
 
-            # Câmera
+
             pdf.cell(col_mm[3], row_h, '-', 1, 0, 'C', True)
 
-            # Setor
+
             pdf.cell(col_mm[4], row_h, '-', 1, 0, 'C', True)
 
             # Registros
@@ -605,9 +561,7 @@ async def exportar_pdf(
             pdf.set_font('Helvetica', '', 10)
             pdf.cell(col_mm[6], row_h, f'{percent:.1f}%', 1, 1, 'C', True)
 
-        # =============================================================
-        # Gerar PDF em memória
-        # =============================================================
+
         pdf_output = pdf.output(dest='S')
         if isinstance(pdf_output, str):
             pdf_bytes = pdf_output.encode('latin1')
@@ -625,9 +579,7 @@ async def exportar_pdf(
         conn.close()
 
 
-# ======================================================================
-# Rota — Listar Eventos (API JSON)
-# ======================================================================
+
 
 @router.get("/")
 async def listar_eventos(
@@ -641,7 +593,7 @@ async def listar_eventos(
     try:
         cur = conn.cursor()
 
-        # Lógica de Filtro para Sincronizar com Dashboard
+
         where_clause = ""
         params = []
 
@@ -654,7 +606,7 @@ async def listar_eventos(
                 where_clause = "WHERE e.ocorrido_em > NOW() - INTERVAL %s"
                 params = [interval]
 
-        # Adicionar limit aos parâmetros
+
         params.append(limit)
 
         query = f"""
