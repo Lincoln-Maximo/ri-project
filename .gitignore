@@ -39,4 +39,5 @@ storage/
 !package.json
 !openapi_final.json
 !openapi_final_v2.json
-docs/
+docs/*
+!docs/images/
