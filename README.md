@@ -4,7 +4,7 @@ Sistema de visão computacional para segurança do trabalho em ambientes industr
 
 ---
 
-`![Descrição da imagem](docs/images/dashboard.png)`
+![Dashboard do sistema](docs/images/dashboard.png)
 
 ## Sumário
 
